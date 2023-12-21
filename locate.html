@@ -12,16 +12,31 @@
       top: 0;
       bottom: 0;
     }
+
+    #infoPanel {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background-color: white;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
   </style>
 
-<link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css">
-<script src="https://js.arcgis.com/4.28/"></script>
-
+  <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.28/"></script>
 </head>
 <body>
 
 <!-- Display the map -->
 <div id="map"></div>
+
+<!-- Info panel -->
+<div id="infoPanel">
+  <p id="latitude">Latitude: </p>
+  <p id="longitude">Longitude: </p>
+  <p id="direction">Direction: </p>
+</div>
 
 <script>
 var view; // Declare view globally for access in functions
@@ -82,6 +97,11 @@ function initMap(latitude, longitude, direction) {
     });
 
     view.graphics.add(arrowGraphic);
+
+    // Update info panel
+    document.getElementById("latitude").textContent = "Latitude: " + latitude.toFixed(6);
+    document.getElementById("longitude").textContent = "Longitude: " + longitude.toFixed(6);
+    document.getElementById("direction").textContent = "Direction: " + direction.toFixed(2) + " degrees";
   });
 }
 
@@ -91,6 +111,9 @@ function updateUserDirection(newDirection) {
   var arrowGraphic = view.graphics.find(graphic => graphic.symbol && graphic.symbol.color === "red");
   if (arrowGraphic) {
     arrowGraphic.symbol.angle = newDirection;
+
+    // Update info panel
+    document.getElementById("direction").textContent = "Direction: " + newDirection.toFixed(2) + " degrees";
   }
 }
 
@@ -121,8 +144,8 @@ var options = {
 
 // Check if the browser supports geolocation
 if (navigator.geolocation) {
-  // Request the user's location
-  navigator.geolocation.getCurrentPosition(success, error, options);
+  // Watch the user's location with updates every second
+  navigator.geolocation.watchPosition(success, error, options);
 } else {
   console.log("Geolocation is not supported by this browser");
 }
