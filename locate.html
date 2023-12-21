@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Show User Direction</title>
+  <style>
+    #map {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
+  </style>
+
+<link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css">
+<script src="https://js.arcgis.com/4.28/"></script>
+
+</head>
+<body>
+
+<!-- Display the map -->
+<div id="map"></div>
+
+<script>
+var view; // Declare view globally for access in functions
+
+// Function to initialize the map
+function initMap(latitude, longitude, direction) {
+  require([
+    "esri/Map",
+    "esri/views/MapView",
+    "esri/geometry/Point",
+    "esri/symbols/SimpleMarkerSymbol",
+    "esri/Graphic"
+  ], function(Map, MapView, Point, SimpleMarkerSymbol, Graphic) {
+    var map = new Map({
+      basemap: "streets"
+    });
+
+    view = new MapView({
+      container: "map",
+      map: map,
+      center: [longitude, latitude],
+      zoom: 12
+    });
+
+    // Add a marker at the user's location
+    var point = new Point({
+      longitude: longitude,
+      latitude: latitude
+    });
+
+    var markerSymbol = new SimpleMarkerSymbol({
+      color: [226, 119, 40],
+      outline: {
+        color: [255, 255, 255],
+        width: 2
+      },
+      size: 10
+    });
+
+    var graphic = new Graphic({
+      geometry: point,
+      symbol: markerSymbol
+    });
+
+    view.graphics.add(graphic);
+
+    // Add a directional arrow
+    var arrowSymbol = new SimpleMarkerSymbol({
+      path: "M0,0 L-30,-30 L0,-15 L30,-30 Z",
+      color: "red",
+      size: 15
+    });
+
+    var arrowGraphic = new Graphic({
+      geometry: point,
+      symbol: arrowSymbol,
+      angle: direction
+    });
+
+    view.graphics.add(arrowGraphic);
+  });
+}
+
+// Function to update user direction
+function updateUserDirection(newDirection) {
+  // Find the arrow graphic in the graphics layer and update its angle
+  var arrowGraphic = view.graphics.find(graphic => graphic.symbol && graphic.symbol.color === "red");
+  if (arrowGraphic) {
+    arrowGraphic.symbol.angle = newDirection;
+  }
+}
+
+// Function to handle the success of obtaining the user's location
+function success(position) {
+  var latitude = position.coords.latitude;
+  var longitude = position.coords.longitude;
+  var direction = position.coords.heading || 0;
+
+  console.log("Latitude: " + latitude);
+  console.log("Longitude: " + longitude);
+  console.log("Direction: " + direction);
+
+  initMap(latitude, longitude, direction);
+}
+
+// Function to handle errors when obtaining the user's location
+function error() {
+  console.log("Unable to retrieve your location");
+}
+
+// Options for geolocation
+var options = {
+  enableHighAccuracy: true,
+  timeout: 5000,
+  maximumAge: 0
+};
+
+// Check if the browser supports geolocation
+if (navigator.geolocation) {
+  // Request the user's location
+  navigator.geolocation.getCurrentPosition(success, error, options);
+} else {
+  console.log("Geolocation is not supported by this browser");
+}
+
+// Simulate updating the user's direction (call this when the direction changes)
+function simulateDirectionChange(newDirection) {
+  updateUserDirection(newDirection);
+}
+</script>
+
+</body>
+</html>
